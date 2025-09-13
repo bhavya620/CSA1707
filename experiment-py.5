@@ -1,0 +1,111 @@
+from collections import deque
+
+def valid_state(m_left, c_left, total_m, total_c):
+    # Check counts in valid ranges
+    if not (0 <= m_left <= total_m and 0 <= c_left <= total_c):
+        return False
+    m_right = total_m - m_left
+    c_right = total_c - c_left
+    # On left: missionaries shouldn't be outnumbered (unless no missionaries)
+    if m_left > 0 and c_left > m_left:
+        return False
+    # On right: same rule
+    if m_right > 0 and c_right > m_right:
+        return False
+    return True
+
+def bfs_solution(total_m=3, total_c=3, boat_capacity=2):
+    start = (total_m, total_c, 0)  # (m_left, c_left, boat_side) boat_side: 0=left, 1=right
+    goal = (0, 0, 1)
+
+    # possible moves of people in the boat (m, c)
+    moves = [(1,0),(2,0),(0,1),(0,2),(1,1)]
+    # but later filter moves exceeding boat capacity or exceeding available people
+
+    queue = deque([start])
+    parent = {start: None}
+
+    while queue:
+        state = queue.popleft()
+        m_left, c_left, boat = state
+        if state == goal:
+            # reconstruct path
+            path = []
+            cur = state
+            while cur is not None:
+                path.append(cur)
+                cur = parent[cur]
+            path.reverse()
+            return path
+
+        # try all legal moves
+        for dm, dc in moves:
+            if dm + dc > boat_capacity:
+                continue
+
+            if boat == 0:  # boat on left -> move people left -> right
+                new_m_left = m_left - dm
+                new_c_left = c_left - dc
+                new_boat = 1
+                # can't move more people than available
+                if new_m_left < 0 or new_c_left < 0:
+                    continue
+            else:  # boat on right -> move people right -> left
+                new_m_left = m_left + dm
+                new_c_left = c_left + dc
+                new_boat = 0
+                # can't move more people than available on right
+                if new_m_left > total_m or new_c_left > total_c:
+                    continue
+
+            new_state = (new_m_left, new_c_left, new_boat)
+            if not valid_state(new_m_left, new_c_left, total_m, total_c):
+                continue
+            if new_state not in parent:
+                parent[new_state] = state
+                queue.append(new_state)
+
+    return None  # no solution
+
+def pretty_print_path(path, total_m, total_c):
+    if not path:
+        print("No solution found.")
+        return
+    print(f"Solution found in {len(path)-1} moves:\n")
+    for i, state in enumerate(path):
+        m_left, c_left, boat = state
+        m_right = total_m - m_left
+        c_right = total_c - c_left
+        side = "left" if boat == 0 else "right"
+        print(f"Step {i}: Left -> M:{m_left} C:{c_left} | Right -> M:{m_right} C:{c_right} | Boat on {side}")
+        if i < len(path)-1:
+            # describe the move
+            nm_left, nc_left, nboat = path[i+1]
+            dm = abs(nm_left - m_left)
+            dc = abs(nc_left - c_left)
+            direction = "left->right" if boat == 0 else "right->left"
+            moved = []
+            if dm: moved.append(f"{dm}M")
+            if dc: moved.append(f"{dc}C")
+            print("  Move:", ", ".join(moved) or "0", f"({direction})")
+        print()
+
+if __name__ == "__main__":
+    print("Missionaries and Cannibals solver (defaults: 3 missionaries, 3 cannibals, boat capacity 2)")
+    try:
+        m = input("Enter number of missionaries (press Enter for 3): ").strip()
+        c = input("Enter number of cannibals (press Enter for 3): ").strip()
+        b = input("Enter boat capacity (press Enter for 2): ").strip()
+        total_m = int(m) if m else 3
+        total_c = int(c) if c else 3
+        boat_capacity = int(b) if b else 2
+    except ValueError:
+        print("Invalid input. Using defaults 3,3,2.")
+        total_m, total_c, boat_capacity = 3,3,2
+
+    # Basic feasibility check: can't have more missionaries than cannibals on one side initially violating rule
+    if not valid_state(total_m, total_c, total_m, total_c):
+        print("Invalid initial configuration: cannibals outnumber missionaries on starting side.")
+    else:
+        path = bfs_solution(total_m, total_c, boat_capacity)
+        pretty_print_path(path, total_m, total_c)
