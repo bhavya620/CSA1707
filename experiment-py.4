@@ -1,0 +1,85 @@
+import re
+from itertools import permutations
+
+def parse_equation(equation):
+    # remove spaces
+    eq = equation.replace(" ", "")
+    # allow either = or ==
+    if "==" in eq:
+        left, right = eq.split("==")
+    else:
+        left, right = eq.split("=")
+    # split left side by + into addends
+    addends = re.split(r'\+', left)
+    # make sure all tokens are alphabetic words
+    tokens = addends + [right]
+    for t in tokens:
+        if not re.fullmatch(r'[A-Z]+', t):
+            raise ValueError("Only uppercase alphabetic words allowed (A-Z).")
+    return addends, right
+
+def word_value(word, mapping):
+    # convert word to integer using mapping dict of char->digit
+    return int("".join(str(mapping[ch]) for ch in word))
+
+def solve_cryptarithm(equation):
+    # parse
+    addends, result = parse_equation(equation.upper())
+    # collect unique letters
+    letters = []
+    for w in addends + [result]:
+        for ch in w:
+            if ch not in letters:
+                letters.append(ch)
+    n = len(letters)
+    if n > 10:
+        print("Impossible: more than 10 unique letters.")
+        return []
+
+    # leading letters cannot be zero
+    leading = set(w[0] for w in addends + [result])
+
+    solutions = []
+    digits = '0123456789'
+    for perm in permutations(digits, n):
+        mapping = {letters[i]: int(perm[i]) for i in range(n)}
+        # check leading zeros
+        if any(mapping[ch] == 0 for ch in leading):
+            continue
+        # compute numeric values
+        try:
+            s = sum(word_value(w, mapping) for w in addends)
+            r = word_value(result, mapping)
+        except ValueError:
+            continue
+        if s == r:
+            solutions.append(mapping.copy())
+
+    return solutions
+
+# ------------------ Runner ------------------
+if __name__ == "__main__":
+    print("Enter cryptarithmetic equation (example: SEND + MORE = MONEY):")
+    eq = input().strip()
+    try:
+        sols = solve_cryptarithm(eq)
+    except Exception as e:
+        print("Error:", e)
+    else:
+        if not sols:
+            print("No solutions found.")
+        else:
+            print(f"Found {len(sols)} solution(s):")
+            for sol in sols:
+                # print mapping in a neat way
+                print(", ".join(f"{k}={v}" for k, v in sorted(sol.items())))
+                # also show the filled equation
+                left, right = eq.replace(" ", "").split("=")
+                filled = left
+                for ch, d in sol.items():
+                    filled = filled.replace(ch, str(d))
+                filled += "=" + right
+                for ch, d in sol.items():
+                    filled = filled.replace(ch, str(d))
+                print("->", filled)
+                print()
