@@ -1,0 +1,21 @@
+% --- Knowledge Base ---
+
+% disease(Name, [List of Symptoms])
+disease(cold, [cough, sneezing, sore_throat, runny_nose]).
+disease(flu, [fever, cough, headache, body_ache, fatigue]).
+disease(malaria, [fever, chills, sweating, headache, nausea]).
+disease(typhoid, [fever, abdominal_pain, diarrhea, weakness]).
+disease(covid19, [fever, cough, loss_of_taste, loss_of_smell, fatigue, breathlessness]).
+
+% --- Rules ---
+
+% check if all symptoms of a disease are present
+has_all_symptoms([], _).
+has_all_symptoms([Symptom | Rest], Symptoms) :-
+    member(Symptom, Symptoms),
+    has_all_symptoms(Rest, Symptoms).
+
+% diagnose: matches a list of symptoms to a disease
+diagnose(Symptoms, Disease) :-
+    disease(Disease, DiseaseSymptoms),
+    has_all_symptoms(DiseaseSymptoms, Symptoms).
