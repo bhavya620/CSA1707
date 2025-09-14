@@ -1,0 +1,37 @@
+% Best-First Search in Prolog
+% Graph edges with heuristic values (h) to the goal.
+
+% edge(Node, Neighbor, Cost).
+edge(a, b, 1).
+edge(a, c, 1).
+edge(b, d, 1).
+edge(b, e, 1).
+edge(c, f, 1).
+edge(c, g, 1).
+
+% heuristic(Node, HValue).
+heuristic(a, 5).
+heuristic(b, 3).
+heuristic(c, 4).
+heuristic(d, 6).
+heuristic(e, 2).
+heuristic(f, 1).
+heuristic(g, 0).   % Goal node
+
+% Best-first search driver
+best_first(Start, Goal, Path) :-
+    heuristic(Start, H),
+    search([[Start, H]], Goal, RevPath),
+    reverse(RevPath, Path).
+
+% If Goal is reached
+search([[Goal, _] | _], Goal, [Goal]).
+
+% Expand the node with smallest heuristic
+search([[Node, _] | RestQueue], Goal, [Node | Path]) :-
+    findall([Next, Hn],
+            (edge(Node, Next, _), heuristic(Next, Hn)),
+            Children),
+    append(RestQueue, Children, TempQueue),
+    sort(2, @=<, TempQueue, NewQueue),   % sort by heuristic ascending
+    search(NewQueue, Goal, Path).
