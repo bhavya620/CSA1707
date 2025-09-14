@@ -1,0 +1,33 @@
+% Initial state: monkey at door, box at window, monkey on floor, no banana
+initial(state(door, window, onfloor, hasnot)).
+
+% Goal state: monkey anywhere, box anywhere, monkey has banana
+goal(state(_, _, _, has)).
+
+% Possible actions
+move(state(door, B, onfloor, H), walk(door, middle),
+     state(middle, B, onfloor, H)).
+
+move(state(window, B, onfloor, H), walk(window, middle),
+     state(middle, B, onfloor, H)).
+
+move(state(middle, B, onfloor, H), walk(middle, window),
+     state(window, B, onfloor, H)).
+
+move(state(middle, B, onfloor, H), walk(middle, door),
+     state(door, B, onfloor, H)).
+
+move(state(M, M, onfloor, H), push(M, middle),
+     state(middle, middle, onfloor, H)).
+
+move(state(M, M, onfloor, H), push(M, window),
+     state(window, window, onfloor, H)).
+
+move(state(M, M, onfloor, H), push(M, door),
+     state(door, door, onfloor, H)).
+
+move(state(M, B, onfloor, H), climb,
+     state(M, B, onbox, H)).
+
+move(state(M, B, onbox, hasnot), grasp,
+     state(M, B, onbox, has)).
