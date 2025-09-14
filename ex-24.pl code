@@ -1,0 +1,10 @@
+% Facts: diet recommendations based on diseases
+diet(diabetes, [vegetables, whole_grains, lentils, nuts, low_fat_milk]).
+diet(hypertension, [fruits, vegetables, oats, brown_rice, low_salt_food]).
+diet(obesity, [salads, fruits, green_tea, boiled_vegetables, high_fiber_food]).
+diet(anemia, [spinach, beetroot, pomegranate, red_meat, beans]).
+diet(heart_disease, [oats, olive_oil, fish, nuts, green_leafy_vegetables]).
+
+% Rule: suggest diet for a disease
+suggest_diet(Disease, Foods) :-
+    diet(Disease, Foods).
